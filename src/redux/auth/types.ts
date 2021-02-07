@@ -19,7 +19,7 @@ export enum AuthRegisterActionTypes {
   REGISTER_SUCCESS = '@@Auth/REGISTER_SUCCESS',
   REGISTER_ERROR = '@@Auth/REGISTER_ERROR',
 }
-interface User {
+export interface User {
   firstName: string;
   lastName: string;
   email: string;

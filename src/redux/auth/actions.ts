@@ -5,11 +5,13 @@ import {
   RequestLoading,
   AuthRegisterActionTypes,
   Register,
+  User,
 } from './types';
 import { ActionCreator, Action, Dispatch } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { ApplicationState } from '../index';
 import { login, register } from '../../services/auth';
+import { decodeJwt } from '../../lib/validateUser';
 
 // for login.
 function loginRequestInit(payload: RequestLoading) {
@@ -38,19 +40,19 @@ export type AppThunk = ActionCreator<
 >;
 
 export const registerRequest: AppThunk = (registerPayload: Register) => {
-  return (dispatch: Dispatch): Action => {
+  return async (dispatch: Dispatch) => {
     dispatch(registerRequestInit({ loading: true }));
     try {
-      const registerApiResponse = register(registerPayload);
-      console.log({ registerApiResponse });
-      return dispatch(
+      await register(registerPayload);
+      dispatch(
         registerSuccess({
           loading: false,
         }),
       );
-      // redirect to login page.
+      // I am sorry :(
+      window.location.href = '/login';
     } catch (error) {
-      return dispatch(
+      dispatch(
         registerFailure({
           loading: false,
           authenticated: false,
@@ -61,22 +63,32 @@ export const registerRequest: AppThunk = (registerPayload: Register) => {
     }
   };
 };
-
 export const loginRequest: AppThunk = (loginPayload: Login) => {
-  return (dispatch: Dispatch): Action => {
+  return async (dispatch: Dispatch) => {
     dispatch(loginRequestInit({ loading: true }));
     try {
-      const loginApiResponse = login(loginPayload);
-      console.log(loginApiResponse);
-      return dispatch(
+      const { data } = await login(loginPayload);
+      const { accessToken } = data;
+      localStorage.setItem('token', accessToken);
+      const decodedJwt: any = decodeJwt(accessToken);
+      const user: User = {
+        firstName: decodedJwt.firstName,
+        lastName: decodedJwt.lastName,
+        email: decodedJwt.email,
+      };
+      dispatch(
         loginSuccess({
           loading: false,
           authenticated: true,
-          user: {},
+          user: user,
         }),
       );
+      // sorry again :(
+      // due to this redux state won't be persisted.
+      // we are relying on local storage token for authentication
+      window.location.href = '/';
     } catch (error) {
-      return dispatch(
+      dispatch(
         loginFailure({
           loading: false,
           authenticated: false,
