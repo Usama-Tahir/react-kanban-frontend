@@ -76,7 +76,7 @@ const CardComponent: React.FC<IProps> = ({ card, id, updateCardRequest }) => {
               Resolve
             </Button>
           )}
-          {id === 'done' && <Card.Text>$15</Card.Text>}
+          {id === 'done' && <Card.Text>{card.calculatedCost}</Card.Text>}
         </Card.Body>
       </Card>
     </div>
