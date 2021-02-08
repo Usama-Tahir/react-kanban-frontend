@@ -20,6 +20,7 @@ const AddCard: React.FC<IProps> = ({ addCardRequest }) => {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     addCardRequest(cardTitle);
+    setCardTitle('');
     setAddCard(false);
   }
   return (
