@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
-import { useTime } from 'react-timer-hook';
 import './style.css';
 import { Card as ICard, IPartialCard } from '../../redux/cards/types';
 import { ThunkDispatch } from 'redux-thunk';
@@ -14,6 +13,28 @@ interface IProps {
   updateCardRequest: (_id: string, payload: IPartialCard) => void;
 }
 const CardComponent: React.FC<IProps> = ({ card, id, updateCardRequest }) => {
+  const [seconds, setSeconds] = useState<number | undefined>();
+  const [minutes, setMinutes] = useState<number | undefined>();
+  const [hours, setHours] = useState<number | undefined>();
+  const calculateUpdatedTime = () => {
+    if (card.state === 'inprogress' && card.startTime) {
+      const timeDiff = new Date().getTime() - card.startTime;
+      const totalSeconds = timeDiff / 1000;
+      const totalHours = Math.round(totalSeconds / 3600);
+      const minutes = Math.round((totalSeconds % 3600) / 60);
+      const seconds = Math.round((totalSeconds % 3600) % 60);
+      setSeconds(seconds);
+      setMinutes(minutes);
+      setHours(totalHours);
+    }
+  };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      calculateUpdatedTime();
+    }, 1000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const updateCardState = (card: ICard, state: string) => {
     if (state === 'inprogress') {
       const payload = {
@@ -47,7 +68,7 @@ const CardComponent: React.FC<IProps> = ({ card, id, updateCardRequest }) => {
       updateCardRequest(_id, payload);
     }
   };
-  const { seconds, minutes, hours, ampm } = useTime({ format: '12-hour' });
+  console.log({ card });
   const { title, _id } = card;
   return (
     <div>
@@ -62,10 +83,9 @@ const CardComponent: React.FC<IProps> = ({ card, id, updateCardRequest }) => {
               Start
             </Button>
           )}
-          {id === 'inprogress' && (
+          {id === 'inprogress' && seconds && (
             <div style={{ fontSize: '20px' }}>
               <span>{hours}</span>:<span>{minutes}</span>:<span>{seconds}</span>
-              <span>{ampm}</span>
             </div>
           )}
           {id === 'inprogress' && (
